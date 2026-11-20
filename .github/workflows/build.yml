@@ -1,0 +1,38 @@
+name: Build exe
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Build exe
+        run: pyinstaller --onefile --windowed --name TwentyQuestions twenty_questions.py
+
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: TwentyQuestions
+          path: dist/TwentyQuestions.exe
+
+      - name: Attach exe to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/TwentyQuestions.exe
